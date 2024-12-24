@@ -133,7 +133,7 @@ Your task is to create an embedding space for the glycan libraries that captures
 - `tissue_species`: Species associated with the sample collected
 
 
-You can validate your learned representation by assessing the closeness of the N-glycans in the new embedding space. The N-glycans list is provided in the N-Glycans.csv. Also a notebook loading glycowork and isolating the N-glycans is provided in the notebooks folder.
+You can validate your learned representation by assessing the closeness of the N-glycans in the new embedding space. The N-glycans list is provided in the N-Glycans.pkl. Also a notebook loading glycowork and isolating the N-glycans is provided in the notebooks folder.
 
 For this task, head to the data/glycan_embedding folder. You will find the following files:
 
@@ -171,6 +171,7 @@ We use uv for package management - a modern, fast Python package installer and r
 
 Alternatively, you can use the requirements.txt file to install the dependencies with any package manager of your choice.
 
+The provided packages are not exhaustive, you are free to use any other package you deem necessary for your work.
 
 ### Project Organization
 
