@@ -137,9 +137,9 @@ You can validate your learned representation by assessing the closeness of the N
 
 For this task, head to the data/glycan_embedding folder. You will find the following files:
 
-- glycan_list.csv: The list of glycans you will embed
-- glycan_binding.pkl: The protein-glycan binding interactions
-- df_glycan.pkl: The glycan sequences to use for the embedding space
+- glycan_list.csv: The list of glycans you will embed for inference and enrichment.
+- df_glycan.pkl: The glycan sequences to use for the learning of the embedding space.
+- glycan_binding.pkl: The protein-glycan binding interactions to enrich the embedding space.
 - N_glycans_df.pkl: The N-glycans sequences to use for control representation of the embedding space (also used for learning the embedding space)
 
 The expected output is the enriched list of glycans with information as well as evidence for the utility of the embedding space you created. The more new information you can gather on the structures, the better. Be creative in the approaches you consider - any choice should be justified and insights drawn motivated.
