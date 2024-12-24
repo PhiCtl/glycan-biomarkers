@@ -1,10 +1,18 @@
-[<img src="public/221006-logo-isospec-color.jpg" width="300" align="right">]()
+&nbsp; 
+&nbsp; 
+&nbsp; 
+[<img src="public/221006-logo-isospec-color.jpg" width="250" align="right">]()
 &nbsp;  
-
+&nbsp; 
+&nbsp; 
+&nbsp; 
+&nbsp; 
+&nbsp; 
+&nbsp; 
 # Machine Learning Internship Assignment  
 
-&nbsp;  
-
+&nbsp; 
+&nbsp; 
 
 
 Welcome to your internship assignment! This two-week challenge is designed to evaluate your data science and machine learning capabilities through two interconnected tasks that reflect our team's actual workflow.
