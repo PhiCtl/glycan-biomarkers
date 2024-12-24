@@ -3,7 +3,6 @@
 
 &nbsp;  
 &nbsp;  
-&nbsp;  
 # Machine Learning Internship Assignment  
 
 &nbsp;  
