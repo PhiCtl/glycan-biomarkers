@@ -140,11 +140,11 @@ Your submission should include:
 
 1. All code and analysis files
 2. A reflection.md document containing:
-   • Time spent on each section (E.g 8-10 days Task 1, 4-6 days Task 2)
-   • Perceived difficulty of different components
-   • Discussion of what worked well
-   • Challenges encountered and how you addressed them
-   • Any feedback on the assignment structure
+   - Time spent on each section (E.g 8-10 days Task 1, 4-6 days Task 2)
+   - Perceived difficulty of different components
+   - Discussion of what worked well
+   - Challenges encountered and how you addressed them
+   - Any feedback on the assignment structure
 
 # Technical Requirements
 
@@ -157,25 +157,25 @@ Alternatively, you can use the requirements.txt file to install the dependencies
 
 ### Project Organization
 
-• Clear directory structure separating data, code, and results
-• Comprehensive README.md explaining setup and workflow
-• Well-documented code following PEP 8 guidelines
-• Proper error handling and input validation
+- Clear directory structure separating data, code, and results
+- Comprehensive README.md explaining setup and workflow
+- Well-documented code following PEP 8 guidelines
+- Proper error handling and input validation
 
 ### Evaluation Criteria
 
-• Analytical rigor and statistical soundness
-• Biological insight and interpretation depth
-• Code quality and reproducibility
-• Clear communication of methods and results
-• Creative problem-solving approach
+- Analytical rigor and statistical soundness
+- Biological insight and interpretation depth
+- Code quality and reproducibility
+- Clear communication of methods and results
+- Creative problem-solving approach
 
 
 ### Resources
 
-• [LC MS Experiment](https://pyopenms.readthedocs.io/en/latest/user_guide/background.html)
-• [D-Ratio](https://pmc.ncbi.nlm.nih.gov/articles/PMC10222478/)
-• [Coefficient of Variation](https://pmc.ncbi.nlm.nih.gov/articles/PMC3695475/)
-• [Glaycan Analysis](https://www.mdpi.com/2218-273X/13/4/605)
-• [Glycowork](https://github.com/BojarLab/glycowork)
-• [UV package manager](https://docs.astral.sh/uv/guides/projects/)
+- [LC MS Experiment](https://pyopenms.readthedocs.io/en/latest/user_guide/background.html)
+- [D-Ratio](https://pmc.ncbi.nlm.nih.gov/articles/PMC10222478/)
+- [Coefficient of Variation](https://pmc.ncbi.nlm.nih.gov/articles/PMC3695475/)
+- [Glaycan Analysis](https://www.mdpi.com/2218-273X/13/4/605)
+- [Glycowork](https://github.com/BojarLab/glycowork)
+- [UV package manager](https://docs.astral.sh/uv/guides/projects/)
