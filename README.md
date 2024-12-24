@@ -120,19 +120,27 @@ The laboratory team has successfully identified your discovered molecules using 
 
 You have access to the glycowork library, a comprehensive glycan dataset which contains, as described by the authors:
 
-"Glycowork currently contains the following main datasets that are freely available to everyone:
-• df_glycan: contains ~50,500 unique glycan sequences, including labels such as ~39,500 species associations, ~19,000 tissue associations, and ~2,500 disease associations
-• glycan_binding: contains >580,000 protein-glycan binding interactions, from 1,465 unique glycan-binding proteins"
+"
+- df_glycan: contains ~50,500 unique glycan sequences, including labels such as ~39,500 species associations, ~19,000 tissue associations, and ~2,500 disease associations
+- glycan_binding: contains >580,000 protein-glycan binding interactions, from 1,465 unique glycan-binding proteins"
+
 
 Your task is to create an embedding space for the glycan libraries that captures meaningful relationships between molecules such as sequence proximity, origin similarity, disease commonalities and proteins they interact with. You will then embed your discovered glycans and assess their closeness to other structures to draw conclusions as to their nature. The embedding space can be learned by leveraging the features provided in the glycan_list columns: 
 
-- `glycan_sequence`: Glycan sequence
+- `glycan_sequence`: Glycan sequence 
 - `composition`: Composition of the glycan
 - `tissue_sample`: Medium sample collected
 - `tissue_species`: Species associated with the sample collected
 
 
 You can validate your learned representation by assessing the closeness of the N-glycans in the new embedding space. The N-glycans list is provided in the N-Glycans.csv. Also a notebook loading glycowork and isolating the N-glycans is provided in the notebooks folder.
+
+For this task, head to the data/glycan_embedding folder. You will find the following files:
+
+- glycan_list.csv: The list of glycans you will embed
+- glycan_binding.pkl: The protein-glycan binding interactions
+- df_glycan.pkl: The glycan sequences to use for the embedding space
+- N_glycans_df.pkl: The N-glycans sequences to use for control representation of the embedding space (also used for learning the embedding space)
 
 The expected output is the enriched list of glycans with information as well as evidence for the utility of the embedding space you created. The more new information you can gather on the structures, the better. Be creative in the approaches you consider - any choice should be justified and insights drawn motivated.
 
