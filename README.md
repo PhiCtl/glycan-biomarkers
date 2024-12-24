@@ -116,7 +116,7 @@ Your task is to create an embedding space for the glycan libraries that captures
 - `tissue_species`: Species associated with the sample collected
 
 
-You can validate your learned representation by assessing the closeness of the N-glycans in the new embedding space. The N-glycans list is provided in the N-Glycans.csv.
+You can validate your learned representation by assessing the closeness of the N-glycans in the new embedding space. The N-glycans list is provided in the N-Glycans.csv. Also a notebook loading glycowork and isolating the N-glycans is provided in the notebooks folder.
 
 The expected output is the enriched list of glycans with information as well as evidence for the utility of the embedding space you created. The more new information you can gather on the structures, the better. Be creative in the approaches you consider - any choice should be justified and insights drawn motivated.
 
@@ -141,6 +141,13 @@ Your submission should include:
 
 # Technical Requirements
 
+## Environment Setup
+
+We use uv for package management - a modern, fast Python package installer and resolver. The project.toml file in the repository specifies all required dependencies, ensuring everyone works with the same environment. The lock file contains the exact versions of the dependencies that were installed. After cloning the repository, simply run `uv sync` and uv will handle the rest, creating a clean, isolated environment for your work. More on uv can be found in the ressources section.
+
+Alternatively, you can use the requirements.txt file to install the dependencies with any package manager of your choice.
+
+
 ### Project Organization
 
 • Clear directory structure separating data, code, and results
@@ -156,7 +163,8 @@ Your submission should include:
 • Clear communication of methods and results
 • Creative problem-solving approach
 
-# Resources
+
+### Resources
 
 • [LC MS Experiment](https://pyopenms.readthedocs.io/en/latest/user_guide/background.html)
 • [D-Ratio](https://pmc.ncbi.nlm.nih.gov/articles/PMC10222478/)
