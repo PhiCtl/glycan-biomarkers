@@ -1,4 +1,4 @@
-<img src="public/221006-logo-isospec-color.jpg" width="200" align="right">
+<img src="public/221006-logo-isospec-color.jpg" width="400" align="right">
 
 # Machine Learning Internship Assignment
 
