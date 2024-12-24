@@ -6,7 +6,7 @@ Our will is that that after completion, you have rough understanding of the doma
 
 We will introduce to you the domain of glycobiology and the tools we use to characterize glycans. You are not expected to be an expert in the domain and we will provide you with the necessary background. In any case we also provide you with complementary resources for further explanation.
 
-Enjoy :)! 
+Enjoy :) ! 
 
 ## Introduction: What are Glycans?
 
@@ -31,7 +31,7 @@ Put simply:
 #### LC-MS Experiments
 LC-MS experiments follow a strict framework to reduce the **variability of the analytical platform** in the data. This framework is composed of different blocks reproduced identically through multiple batches. A schematic description of a batch is shown below:
 
-![Sample List Organization](sample_list.png)
+![Sample List Organization](sample-list.png)
 *Figure 1: Schematic representation of a typical batch showing the order and organization of different sample types. Blanks and System Suitability samples are run first, followed by alternating patterns of disease samples, controls, and quality checks.*
 
 In essence, a block contains different sample types or "class" run in a specific order:
@@ -60,7 +60,7 @@ Your input data is summarized in three files, all in `data/input` in csv format:
    - Rows: Exogenous standards IDs (S standards)
    - Columns: Feature descriptors (RT, m/z) (k descriptors)
 
-### A - EDA
+### A - Exploratory Data Analysis
 
 Your first task is to inspect the data, understand the dynamics at hand and perform necessary analysis to assess if the experiments is exploitable for biomarker discovery. As the analytical platform can introduce measurement bias, it's crucial to monitor both technical variability (from the instrument) and biological variability (true differences between samples).
 
@@ -123,7 +123,7 @@ The expected output is the enriched list of glycans with information as well as 
 # Submission Process
 
 ### Repository Setup
-1. Fork the assignment repository from [REPOSITORY_LINK](https://github.com/isospec/ml-internships)]
+1. Fork the assignment repository from this repository
 2. Create a new branch for your work
 3. Commit your changes regularly with clear, descriptive messages
 4. When complete, create a pull request to the main repository
