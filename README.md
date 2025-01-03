@@ -54,7 +54,7 @@ In essence, a block contains different sample types or "class" run in a specific
 - **Blank samples**: No biological information, used to assess contaminants. Consider the Zero, Solvant and Blank samples of the schema. 
 - **System Suitability (SS)**: Contains exogenous standards for monitoring detector behavior. Consider the SSS and SS Conditionnig samples of the schema. 
 - **Disease/Control samples**: Main samples of interest, in the schema shown as RM and SRM. 
-- **Quality Checks (QC)**: Mixture of all samples to monitor signal consistency. Pooled QC in the schema. 
+- **Quality Checks (QC or dQC)**: Mixture of all samples to monitor signal consistency. Pooled QC in the schema. dQC is a diluted version of the QC and can also be considered a normal QC 
 
 Do not worry about the technical details of the experiment, you must gather at this stage samples have different class and purposes within the experiment. 
 
@@ -91,9 +91,11 @@ To guide your analysis, consider these questions:
 2. How is the contamination in the experiment? 
 3. Are the standards detected consistently across the experiment?
 4. How is the distribution of intensities across the classes? Are there any trends with respect to classes, batches, run order? 
-5. What differences are there between sample classes? Is it consistent across batches? 
+5. What differences are there between sample classes and/or QCs? Is it consistent across batches? 
 
 You are encorraged to provide figures, summary statistics to motivate any insights you gather. Feel free to expand from these questions to interrogate other aspects of the data.
+
+**Important Note:** For the following parts of this exercice we ask you to limit the analysis to only batch1 since batch2 does not contain any sample data.
 
 ### B - Data Processing
 
@@ -104,7 +106,8 @@ Qualitative features should follow at least these criteria:
 - Consistent support in detection (>=70%) on the same class
 - Within mass range of interest (Glycans > 500 m/z)
 
-Make sure to interrogate the samples as well - each batch contains 92 well plates, and an error can happen! Monitor the sample-to-sample intensity variations and check for possible transformations that could improve comparability. 
+Make sure to interrogate the samples as well - as errors can happen! Monitor the sample-to-sample intensity variations and check for possible transformations that could improve comparability. 
+
 
 The output of this phase should be a list of features and samples you will leverage for doing biomarker discovery. You should provide justifications for their selection or the removal of others - every choice matters when we're looking for reliable biomarkers.
 
@@ -120,9 +123,9 @@ The laboratory team has successfully identified your discovered molecules using 
 
 You have access to the glycowork library, a comprehensive glycan dataset which contains, as described by the authors:
 
-"
+
 - df_glycan: contains ~50,500 unique glycan sequences, including labels such as ~39,500 species associations, ~19,000 tissue associations, and ~2,500 disease associations
-- glycan_binding: contains >580,000 protein-glycan binding interactions, from 1,465 unique glycan-binding proteins"
+- glycan_binding: contains >580,000 protein-glycan binding interactions, from 1,465 unique glycan-binding proteins
 
 
 Your task is to create an embedding space for the glycan libraries that captures meaningful relationships between molecules such as sequence proximity, origin similarity, disease commonalities and proteins they interact with. You will then embed your discovered glycans and assess their closeness to other structures to draw conclusions as to their nature. The embedding space can be learned by leveraging the features provided in the glycan_list columns: 
