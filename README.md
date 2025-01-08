@@ -52,7 +52,7 @@ LC-MS experiments follow a strict framework to reduce the **variability of the a
 
 In essence, a block contains different sample types or "class" run in a specific order:
 - **Blank samples**: No biological information, used to assess contaminants. Consider the Zero, Solvant and Blank samples of the schema. 
-- **System Suitability (SS)**: Contains exogenous standards for monitoring detector behavior. Consider the SSS and SS Conditionnig samples of the schema. 
+- **System Suitability (SS)**: Contains exogenous standards for monitoring detector behavior. Consider the SSS and SS Conditionnig samples of the schema. Experimental_blank is considered as a SS sample.
 - **Disease/Control samples**: Main samples of interest, in the schema shown as RM and SRM. 
 - **Quality Checks (QC or dQC)**: Mixture of all samples to monitor signal consistency. Pooled QC in the schema. dQC is a diluted version of the QC and can also be considered a normal QC 
 
@@ -73,7 +73,7 @@ Your input data is summarized in three files, all in `data/input` in csv format:
    - Rows: Sample IDs (N samples)
 
 4. **Exogenous Standards** (Sxk):
-   - Rows: Exogenous standards IDs (S standards)
+   - Rows: Exogenous standards IDs (S standards): They are identified by GUn corresponding to the glycan unit, e.g. GU4 is composed of four glycan units from a Maltodextrin ladder.
    - Columns: Feature descriptors (RT, m/z) (k descriptors)
 
 ### A - Exploratory Data Analysis
@@ -115,6 +115,13 @@ The output of this phase should be a list of features and samples you will lever
 
 In this final step your role is to showcase your skills for extracting meaningful patterns from our experimental data. You will leverage the curated list of features to find a subset of them that captures most biological differences between classes. Here, little guidance is provided as we expect motivating the discovery of a biomarker should be one of your strong suits. Keep in mind that statistical significance, predictive power and decision boundaries are important concepts when justifying such discovery. A sense of hierarchy should also be provided in the final list of targets.
 
+**Important Note:** 
+You can consider the following class mapping for the analysis:
+- French: Lung cancer
+- LMU: Benign disease
+- Dunn: Healthy
+
+
 ## Task 02: Biomarker Embedding
 
 In this second phase, your role is to provide interpretation power to your findings. Following the discovery of a biomarker, you are tasked with leveraging third party knowledge around the structure you identified to provide more insights on the origin of this glycan, other diseases it has been identified and proteins it is related to. 
@@ -136,7 +143,7 @@ Your task is to create an embedding space for the glycan libraries that captures
 - `tissue_species`: Species associated with the sample collected
 
 
-You can validate your learned representation by assessing the closeness of the N-glycans in the new embedding space. The N-glycans list is provided in the N-Glycans.pkl. Also a notebook loading glycowork and isolating the N-glycans is provided in the notebooks folder.
+You can validate your learned representation by assessing the closeness of the N-glycans in the new embedding space. The N-glycans list is provided in the N-Glycans.pkl. You can refer to the glycowork notebooks [00_core.ipynb](https://github.com/BojarLab/glycowork/blob/master/00_core.ipynb) for more information on the N-glycans.
 
 For this task, head to the data/glycan_embedding folder. You will find the following files:
 
@@ -150,10 +157,10 @@ The expected output is the enriched list of glycans with information as well as 
 # Submission Process
 
 ### Repository Setup
-1. Fork the assignment repository from this repository
-2. Create a new branch for your work
-3. Commit your changes regularly with clear, descriptive messages
-4. When complete, create a pull request to the main repository
+1. Fork the assignment repository from this [repository](https://github.com/isospec/ml-internships).
+2. Create a new branch for your work, in your own repository.
+3. Commit your changes regularly with clear, descriptive messages.
+4. When complete, create a pull request to the main repository.
 
 ### Required Documents
 Your submission should include:
