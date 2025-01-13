@@ -32,7 +32,9 @@ def subbatch(x):
     else:
         return 8
 
-def scale_intensities(df_data, scaling_mode='median'):
+def scale_intensities(df_data, scaling_mode='log'):
+
+    assert(scaling_mode in ['median', 'log'])
 
     if scaling_mode == 'median':
         # Compute the QC pool metabolites median intensities for each data sub_batch
@@ -47,14 +49,20 @@ def scale_intensities(df_data, scaling_mode='median'):
         df_data_corr['intensity'] = df_data_corr['intensity'] / df_data_corr['med_QC_intensity']
 
         return df_data_corr.drop(['order', 'sub_batch', 'batch', 'med_QC_intensity'], axis=1)
-    else:
-        return df_data
+    
+    elif scaling_mode == 'log':
+        # Log transformation of the intensities
+        df_data['log_intensity'] = df_data['intensity'].apply(lambda x : np.nan if x <= 1E-3 else np.log(x))
+        df_data['log_intensity'] = df_data[['feature', 'log_intensity']].groupby('feature').transform(lambda x : x.fillna(x.median()))
+        df_data['intensity_raw'] = df_data['intensity']
+        df_data['intensity'] = df_data['log_intensity']
+        return df_data.drop(['log_intensity'], axis=1)
 
 def select_features(df_data, CV_thresh=30, detect_thresh=400, detect_perc=70):
 
-    # Feature selection with CV < 30% for QC
-    # Discard outliers features in QC samples
+    # Feature selection with CV < 30% for QC and consistency in feature detection >= 70%
 
+    # Discard outliers features in QC samples
     # Remove features with outliers in QC to compute robust CV on features
     df_QC = df_data[df_data['class'] == 'QC']
     df_QC_summary = df_QC.groupby(['feature'])['intensity'].describe().reset_index()
@@ -70,10 +78,9 @@ def select_features(df_data, CV_thresh=30, detect_thresh=400, detect_perc=70):
     df_data = df_data[df_data['feature'].isin(selected_feats)]
 
     # Feature consistency in detection (>= 70%) 
-    df_data['detection'] = df_data['intensity'].apply(lambda x: x > detect_thresh)
+    df_data['detection'] = df_data['intensity'].apply(lambda x: x >= detect_thresh)
     df_detect = df_data.groupby('feature').agg({'detection':lambda x : x.sum() / x.size * 100})
-    detected_features = df_detect.loc[(df_detect['detection'] < detect_perc)].index
-    print(f"At this stage, {len(detected_features)} features were selected")
+    detected_features = df_detect.loc[(df_detect['detection'] >= detect_perc)].index
     df_data = df_data[df_data['feature'].isin(detected_features)]
 
     return df_data
@@ -90,6 +97,7 @@ def remove_outliers(df_data, out_thresh=4, in_classes=['Dunn', 'French', 'LMU'])
     df_outliers = df_data[(df_data['intensity'] < df_data['lower_bound']) | (df_data['intensity'] > df_data['upper_bound']) ]\
                 .groupby(['class','sample']).size().reset_index()
     df_outliers = df_outliers.rename(columns={0:'df_outliers'})
+    
     # Exclude
     samples_to_exclude = list(df_outliers[(df_outliers['df_outliers'] > out_thresh) & df_outliers['class'].isin(in_classes)]['sample'])
     df_data = df_data[~df_data['sample'].isin(samples_to_exclude)]
@@ -126,7 +134,7 @@ class DataProcessor:
         
         return df_data
     
-    def process_data(self, df_data):
+    def preprocess_data(self, df_data):
 
         #Filter glycans
         df_data = df_data[df_data['mz'] > 500].drop(['mz', 'rt'], axis=1)
@@ -139,7 +147,14 @@ class DataProcessor:
         df_data = scale_intensities(df_data)
         
 
-        return df_data
+        return df_data[df_data['class'].isin(self.classes)]
+    
+    def prepare_for_training(self, df_data):
+        df_X = df_data[['sample','feature', 'intensity', 'class']].pivot(index=['sample', 'class'], columns='feature', values='intensity').reset_index()
+        X = df_X.drop(['sample', 'class'], axis=1).to_numpy()
+        y = df_X['class'].apply(lambda x : self.classes.index(x)).to_numpy()
+
+        return X, y
 
     def save_data(self, df_data, path):
         df_data.to_csv(path)
@@ -154,10 +169,10 @@ def main():
     data_processor = DataProcessor(classes=['Dunn', 'French', 'LMU'])
 
     data_raw = data_processor.load_data(DATA_PATH)
-    data_processed = data_processor.process_data(data_raw)
+    data_processed = data_processor.preprocess_data(data_raw)
 
     print(f"Initial list contains {data_raw['feature'].nunique()} features and {data_raw[data_raw['class'].isin(['Dunn', 'French', 'LMU'])]['sample'].nunique()} samples.")
-    print(f"Final curated list contains {data_processed['feature'].nunique()} features and {data_processed[data_processed['class'].isin(['Dunn', 'French', 'LMU'])]['sample'].nunique()} samples.")
+    print(f"Final curated list contains {data_processed['feature'].nunique()} features and {data_processed['sample'].nunique()} samples.")
 
 
 if __name__ == '__main__':
