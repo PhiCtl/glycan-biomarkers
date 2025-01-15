@@ -78,7 +78,7 @@ def main():
     print('Confusion matrix :\n', confusion_matrix(y_test, y_pred))
 
     # Plot feature importance
-    plot_feature_importance(model, data_processed['feature'].unique(), top_n=30, path="output")
+    plot_feature_importance(model, data_processed['feature'].unique(), top_n=30, path="../../../output/Task_1")
 
 
     
