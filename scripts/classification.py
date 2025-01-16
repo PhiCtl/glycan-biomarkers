@@ -45,7 +45,7 @@ def main():
     
     script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
     os.chdir(script_dir)
-    DATA_PATH = "../../data/input"
+    DATA_PATH = "../data/input"
     data_processor = DataProcessor(classes=['Dunn', 'French', 'LMU'])
 
     data_raw = data_processor.load_data(DATA_PATH)
@@ -58,8 +58,7 @@ def main():
 
     param_grid = {
         "n_estimators": [5, 10, 15, 20, 25, 30],
-        "max_depth": [3,4,5],
-        "min_samples_leaf": [4,5,6,7,8],
+        "max_depth": [3],
         "max_features":['sqrt'],
         "bootstrap": [True]
     }
@@ -78,7 +77,7 @@ def main():
     print('Confusion matrix :\n', confusion_matrix(y_test, y_pred))
 
     # Plot feature importance
-    plot_feature_importance(model, data_processed['feature'].unique(), top_n=30, path="../../../output/Task_1")
+    plot_feature_importance(model, data_processed['feature'].unique(), top_n=10, path="../outputs")
 
 
     
