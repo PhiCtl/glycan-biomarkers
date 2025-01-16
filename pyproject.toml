@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "directory-tree>=1.0.0",
     "glycowork>=1.4.0",
     "nbdev>=2.3.34",
     "pandas>=2.2.3",
