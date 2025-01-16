@@ -11,6 +11,23 @@ import numpy as np
 import seaborn as sns
 from matplotlib import pyplot as plt
 
+from scipy.stats import median_abs_deviation as mad
+
+def d_ratio(df_data, sample_classes, qc_classes):
+
+    QC_std = df_data[df_data['class'].isin(qc_classes) & (df_data['batch'] == 1)]\
+            .groupby(['feature']).agg({'intensity':lambda x : mad(x)})\
+            .rename(columns={'intensity' : 'std_QC'})
+    
+    general_std = df_data[df_data['class'].isin(sample_classes)]\
+            .groupby(['feature']).agg({'intensity':lambda x : mad(x) })\
+            .rename(columns={'intensity' : 'std_sample'})
+
+    d_ratio = general_std.reset_index().merge(QC_std.reset_index(), on='feature', how='outer')
+    d_ratio['D_ratio'] = d_ratio.apply(lambda x : 100 * x.std_QC / (np.sqrt(x.std_QC**2 + x.std_sample**2)), axis=1)
+    d_ratio['std_ratio'] = d_ratio['std_sample'] / d_ratio['std_QC']
+
+    return d_ratio
 
 def subbatch(x):
     if x['order'] <= 14 :
@@ -58,30 +75,40 @@ def scale_intensities(df_data, scaling_mode='log'):
         df_data['intensity'] = df_data['log_intensity']
         return df_data.drop(['log_intensity'], axis=1)
 
-def select_features(df_data, CV_thresh=30, detect_thresh=400, detect_perc=70):
+def select_features(df_data, CV_thresh=30, detect_thresh=500, detect_perc=70, d_ratio=False):
 
     # Feature selection with CV < 30% for QC and consistency in feature detection >= 70%
-
-    # Discard outliers features in QC samples
-    # Remove features with outliers in QC to compute robust CV on features
     df_QC = df_data[df_data['class'] == 'QC']
-    df_QC_summary = df_QC.groupby(['feature'])['intensity'].describe().reset_index()
-    df_QC_summary['lower_bound'] = 2.5*df_QC_summary['25%'] - 1.5*df_QC_summary['75%']
-    df_QC_summary['upper_bound'] = 2.5*df_QC_summary['75%'] - 1.5*df_QC_summary['25%']
-    df_QC = df_QC.merge(df_QC_summary[['feature', 'lower_bound', 'upper_bound']], on='feature')
-
-    # Since the features first selection step relies on CV per feature, we can just remove feature with outlier value for each sample
-    df_QC = df_QC[(df_QC['intensity'] >= df_QC['lower_bound']) & (df_QC['intensity'] <= df_QC['upper_bound']) ]
-    # Compute feature CV
-    cv_QC = df_QC.groupby('feature')['intensity'].agg(lambda x : x.std() / x.mean() * 100).reset_index().rename(columns={'intensity' : 'CV%'})
+    # # Discard outliers features in QC samples
+    # # Remove features with outliers in QC to compute robust CV on features
+    # df_QC_summary = df_QC.groupby(['feature'])['intensity'].describe().reset_index()
+    # df_QC_summary['lower_bound'] = 2.5*df_QC_summary['25%'] - 1.5*df_QC_summary['75%']
+    # df_QC_summary['upper_bound'] = 2.5*df_QC_summary['75%'] - 1.5*df_QC_summary['25%']
+    # df_QC = df_QC.merge(df_QC_summary[['feature', 'lower_bound', 'upper_bound']], on='feature')
+    # # Since the features first selection step relies on CV per feature, we can just remove feature with outlier value for each sample
+    # df_QC = df_QC[(df_QC['intensity'] >= df_QC['lower_bound']) & (df_QC['intensity'] <= df_QC['upper_bound']) ]
+    
+    # Compute feature CV with MAD approx
+    cv_QC = df_QC.groupby('feature')['intensity'].agg(lambda x : 1.4826 * mad(x) / x.median() * 100)\
+        .reset_index().rename(columns={'intensity' : 'CV%'})
     selected_feats = list(cv_QC[cv_QC['CV%'] <= CV_thresh]['feature'])
     df_data = df_data[df_data['feature'].isin(selected_feats)]
+
+    print(f"{len(selected_feats)} features have a CV of at most {CV_thresh}%.")
 
     # Feature consistency in detection (>= 70%) 
     df_data['detection'] = df_data['intensity'].apply(lambda x: x >= detect_thresh)
     df_detect = df_data.groupby('feature').agg({'detection':lambda x : x.sum() / x.size * 100})
     detected_features = df_detect.loc[(df_detect['detection'] >= detect_perc)].index
     df_data = df_data[df_data['feature'].isin(detected_features)]
+    print(f"{len(detected_features)} features detected in at least {detect_perc}% of samples.")
+
+    # Select features with d-ratio < 50% if specified
+    if d_ratio:
+
+        df_d_ratio = d_ratio(df_data, ['Dunn', 'French', 'LMU'], ['QC'])
+        selected_feats_dratio = df_d_ratio[df_d_ratio['D_ratio'] <= 50]['feature'].to_list()
+        df_data = df_data[df_data['feature'].isin(selected_feats_dratio)]
 
     return df_data
 
@@ -101,6 +128,7 @@ def remove_outliers(df_data, out_thresh=4, in_classes=['Dunn', 'French', 'LMU'])
     # Exclude
     samples_to_exclude = list(df_outliers[(df_outliers['df_outliers'] > out_thresh) & df_outliers['class'].isin(in_classes)]['sample'])
     df_data = df_data[~df_data['sample'].isin(samples_to_exclude)]
+    print(f"{len(samples_to_exclude)} samples have been excluded due to outliers.")
 
     return df_data.drop(['lower_bound', 'upper_bound'], axis=1)
 
@@ -165,7 +193,7 @@ def main():
     script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
     os.chdir(script_dir)
 
-    DATA_PATH = "../../data/input"
+    DATA_PATH = "../data/input"
     data_processor = DataProcessor(classes=['Dunn', 'French', 'LMU'])
 
     data_raw = data_processor.load_data(DATA_PATH)
