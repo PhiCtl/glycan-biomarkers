@@ -15,6 +15,25 @@ from scipy.stats import median_abs_deviation as mad
 
 def d_ratio(df_data, sample_classes, qc_classes):
 
+    """
+    Calculate the D-ratio and standard deviation ratio for features in the dataset.
+
+    Parameters:
+    df_data (pd.DataFrame): DataFrame containing the data with columns 'class', 'batch', 'feature', and 'intensity'.
+    sample_classes (list): List of sample class names to include in the calculation.
+    qc_classes (list): List of QC class names to include in the calculation.
+
+    Returns:
+    pd.DataFrame: DataFrame with columns 'feature', 'std_sample', 'std_QC', 'D_ratio', and 'std_ratio'.
+    """
+
+    if not isinstance(df_data, pd.DataFrame):
+        raise ValueError("df_data must be a pandas DataFrame")
+    if not isinstance(sample_classes, list) or not all(isinstance(i, str) for i in sample_classes):
+        raise ValueError("sample_classes must be a list of strings")
+    if not isinstance(qc_classes, list) or not all(isinstance(i, str) for i in qc_classes):
+        raise ValueError("qc_classes must be a list of strings")
+
     QC_std = df_data[df_data['class'].isin(qc_classes) & (df_data['batch'] == 1)]\
             .groupby(['feature']).agg({'intensity':lambda x : mad(x)})\
             .rename(columns={'intensity' : 'std_QC'})
@@ -50,6 +69,16 @@ def subbatch(x):
         return 8
 
 def scale_intensities(df_data, scaling_mode='log'):
+    """
+    Scale the intensities in the dataset using the specified scaling mode.
+
+    Parameters:
+    df_data (pd.DataFrame): DataFrame containing the data with columns 'class', 'batch', 'feature', 'intensity', etc.
+    scaling_mode (str): The scaling mode to use. Options are 'median' for median scaling and 'log' for log transformation.
+
+    Returns:
+    pd.DataFrame: DataFrame with scaled intensities.
+    """
 
     assert(scaling_mode in ['median', 'log'])
 
@@ -77,17 +106,34 @@ def scale_intensities(df_data, scaling_mode='log'):
 
 def select_features(df_data, CV_thresh=30, detect_thresh=500, detect_perc=70, d_ratio=False):
 
+    """
+    Select features based on coefficient of variation (CV), detection threshold, and optionally D-ratio.
+
+    Parameters:
+    df_data (pd.DataFrame): DataFrame containing the data with columns 'class', 'batch', 'feature', 'intensity', etc.
+    CV_thresh (float): Threshold for the coefficient of variation (CV) in QC samples.
+    detect_thresh (float): Intensity threshold for feature detection.
+    detect_perc (float): Minimum percentage of samples in which a feature must be detected.
+    d_ratio (bool): Whether to apply D-ratio filtering.
+
+    Returns:
+    pd.DataFrame: DataFrame with selected features.
+    """
+
+    if not isinstance(df_data, pd.DataFrame):
+        raise ValueError("df_data must be a pandas DataFrame")
+    if not isinstance(CV_thresh, (int, float)):
+        raise ValueError("CV_thresh must be a numeric value")
+    if not isinstance(detect_thresh, (int, float)):
+        raise ValueError("detect_thresh must be a numeric value")
+    if not isinstance(detect_perc, (int, float)):
+        raise ValueError("detect_perc must be a numeric value")
+    if not isinstance(d_ratio, bool):
+        raise ValueError("d_ratio must be a boolean value")
+
     # Feature selection with CV < 30% for QC and consistency in feature detection >= 70%
     df_QC = df_data[df_data['class'] == 'QC']
-    # # Discard outliers features in QC samples
-    # # Remove features with outliers in QC to compute robust CV on features
-    # df_QC_summary = df_QC.groupby(['feature'])['intensity'].describe().reset_index()
-    # df_QC_summary['lower_bound'] = 2.5*df_QC_summary['25%'] - 1.5*df_QC_summary['75%']
-    # df_QC_summary['upper_bound'] = 2.5*df_QC_summary['75%'] - 1.5*df_QC_summary['25%']
-    # df_QC = df_QC.merge(df_QC_summary[['feature', 'lower_bound', 'upper_bound']], on='feature')
-    # # Since the features first selection step relies on CV per feature, we can just remove feature with outlier value for each sample
-    # df_QC = df_QC[(df_QC['intensity'] >= df_QC['lower_bound']) & (df_QC['intensity'] <= df_QC['upper_bound']) ]
-    
+
     # Compute feature CV with MAD approx
     cv_QC = df_QC.groupby('feature')['intensity'].agg(lambda x : 1.4826 * mad(x) / x.median() * 100)\
         .reset_index().rename(columns={'intensity' : 'CV%'})
@@ -114,6 +160,25 @@ def select_features(df_data, CV_thresh=30, detect_thresh=500, detect_perc=70, d_
 
 def remove_outliers(df_data, out_thresh=4, in_classes=['Dunn', 'French', 'LMU']):
 
+    """
+    Remove outliers from the dataset based on intensity values.
+
+    Parameters:
+    df_data (pd.DataFrame): DataFrame containing the data with columns 'class', 'sample', 'feature', 'intensity', etc.
+    out_thresh (int): Threshold for the number of outliers to exclude a sample.
+    in_classes (list): List of class names to include in the outlier removal process.
+
+    Returns:
+    pd.DataFrame: DataFrame with outliers removed.
+    """
+
+    if not isinstance(df_data, pd.DataFrame):
+        raise ValueError("df_data must be a pandas DataFrame")
+    if not isinstance(out_thresh, int):
+        raise ValueError("out_thresh must be an integer")
+    if not isinstance(in_classes, list) or not all(isinstance(i, str) for i in in_classes):
+        raise ValueError("in_classes must be a list of strings")
+
 
     summ = df_data.groupby('feature')['intensity'].describe().reset_index()
     summ['lower_bound'] = 2.5*summ['25%'] - 1.5*summ['75%']
@@ -135,6 +200,31 @@ def remove_outliers(df_data, out_thresh=4, in_classes=['Dunn', 'French', 'LMU'])
 
 
 class DataProcessor:
+
+    """
+    DataProcessor class for processing and preparing data for training.
+
+    Attributes:
+        classes (list): List of class names to include in the processing.
+        test_size (float): Proportion of the dataset to include in the test split.
+        rd (int): Random seed for reproducibility.
+
+    Methods:
+        __init__(self, classes, test_size=.2, rd_seed=42):
+            Initializes the DataProcessor with the specified classes, test size, and random seed.
+
+        load_data(self, path):
+            Loads the data from the specified path and augments it with metadata.
+
+        preprocess_data(self, df_data):
+            Preprocesses the data by filtering glycans, classes, and batch, selecting features, removing outliers, and scaling intensities.
+
+        prepare_for_training(self, df_data):
+            Prepares the data for training by pivoting the DataFrame and converting it to numpy arrays for features and labels.
+
+        save_data(self, df_data, path):
+            Saves the processed data to the specified path.
+    """
 
     def __init__(self,
                  classes,

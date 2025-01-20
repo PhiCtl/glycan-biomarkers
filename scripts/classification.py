@@ -11,6 +11,31 @@ import matplotlib.pyplot as plt
 from data_processing import DataProcessor
 
 def hyperparameter_tuning(X, y, model, param_grid, cv=3, verbose=1):
+    """
+    Perform hyperparameter tuning using GridSearchCV.
+    Parameters:
+    X (array-like or sparse matrix): The input data to fit.
+    y (array-like): The target variable to try to predict in the case of supervised learning.
+    model (estimator object): The object to use to fit the data.
+    param_grid (dict or list of dictionaries): Dictionary with parameters names (str) as keys and lists of parameter settings to try as values, or a list of such dictionaries.
+    cv (int, cross-validation generator or an iterable, optional): Determines the cross-validation splitting strategy. Default is 3.
+    verbose (int, optional): Controls the verbosity: the higher, the more messages. Default is 1.
+    Returns:
+    dict: The best parameters found during the grid search.
+    """
+
+    # Input validation
+    if not isinstance(X, (np.ndarray, pd.DataFrame)):
+        raise ValueError("X should be a numpy array or a pandas DataFrame.")
+    if not isinstance(y, (np.ndarray, pd.Series)):
+        raise ValueError("y should be a numpy array or a pandas Series.")
+    if not hasattr(model, 'fit'):
+        raise ValueError("model should be an estimator object with a fit method.")
+    if not isinstance(param_grid, (dict, list)):
+        raise ValueError("param_grid should be a dictionary or a list of dictionaries.")
+    if not isinstance(cv, (int, StratifiedKFold)):
+        raise ValueError("cv should be an integer or a StratifiedKFold object.")
+
     grid_search = GridSearchCV(model, param_grid, cv=cv, n_jobs=-1, scoring='balanced_accuracy')
     grid_search.fit(X, y)
 
@@ -20,6 +45,21 @@ def hyperparameter_tuning(X, y, model, param_grid, cv=3, verbose=1):
     return grid_search.best_params_
 
 def plot_feature_importance(model, features, top_n=10, path=None):
+    """
+    Plots the feature importance of a given model.
+    Parameters:
+    model : object
+        The trained model with feature importances.
+    features : list
+        The list of feature names.
+    top_n : int, optional
+        The number of top features to display (default is 10).
+    path : str, optional
+        The directory path where the plot image will be saved. If None, the plot will not be saved (default is None).
+    Returns:
+    None
+    """
+
     importances = model.feature_importances_
     indices = np.argsort(importances)[::-1]
 
@@ -79,8 +119,6 @@ def main():
     # Plot feature importance
     plot_feature_importance(model, data_processed['feature'].unique(), top_n=10, path="../outputs")
 
-
-    
 
 if __name__ == '__main__':
 
