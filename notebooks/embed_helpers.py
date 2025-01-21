@@ -60,10 +60,10 @@ def plot_neighbours_distance(df_neighbours, glycans_list,\
         axs[i].set_ylabel(metric+ ' distance')
         if log_scale : axs[i].set_xscale('log')
 
-        # retrieve neighbours before first, second and th inflection point
-        closest_ngb[glycan].append([neighbours_names[i] for i in sorted_idx[:inflection_pts[0]+1]])
-        closest_ngb[glycan].append([neighbours_names[i] for i in sorted_idx[:inflection_pts[1]+1]])
-        closest_ngb[glycan].append([neighbours_names[i] for i in sorted_idx[:inflection_pts[2]+1]])
+        # retrieve neighbours and distance before first, second and third inflection point
+        closest_ngb[glycan].append([[neighbours_names[i], sorted_dist[i]] for i in sorted_idx[:inflection_pts[0]+1]])
+        closest_ngb[glycan].append([[neighbours_names[i], sorted_dist[i]] for i in sorted_idx[inflection_pts[0]+1:inflection_pts[1]+1]])
+        closest_ngb[glycan].append([[neighbours_names[i], sorted_dist[i]] for i in sorted_idx[inflection_pts[1]+1:inflection_pts[2]+1]])
 
     plt.suptitle('Glycans distance to neighbours')
     plt.tight_layout()
@@ -126,7 +126,8 @@ def glycan_information(glycan, neighbours, df_metadata, metadata, df_proteins_bi
     assert(isinstance(metadata, list))
     assert(isinstance(df_proteins_binding, pd.DataFrame))
 
-    neighbours_metadata = pd.DataFrame({'neighbours' : [i for j in neighbours[glycan] for i in j],\
+    neighbours_metadata = pd.DataFrame({'neighbours' : [i[0] for j in neighbours[glycan] for i in j],\
+                                        'dist' : [i[1] for j in neighbours[glycan] for i in j],\
                                         'infl_order':[1]*len(neighbours[glycan][0]) +
                                                         [2]*len(neighbours[glycan][1]) +
                                                         [3]*len(neighbours[glycan][2])})
@@ -134,21 +135,26 @@ def glycan_information(glycan, neighbours, df_metadata, metadata, df_proteins_bi
                                                     left_on='neighbours', right_on='glycan', how='left')\
                                             .query('infl_order <= @closeness_level')\
                                             .drop('glycan', axis=1)\
-                                            .drop_duplicates('neighbours')
+                                            .drop_duplicates('neighbours')\
+                                            .sort_values(by='dist')\
+                                            .fillna(value=np.nan)
     
     print(f"For glycan {glycan} and its {neighbours_metadata['neighbours'].nunique()} neighbours:\n", "\n")
     if print_agg:
         for c in metadata:
             print("###", c, "\n")
-            for _, g in neighbours_metadata.iterrows():
-                print(g['neighbours'], ": ")
-                print(g[c], "\n")
-            print("*"*len(g['neighbours']), "\n")
+            df = neighbours_metadata[[c, 'neighbours']].explode(c)\
+                                                       .explode(c)\
+                                                       .drop_duplicates(['neighbours', c])
+            for n, g in df.groupby('neighbours'):
+                print(n, ": ")
+                print(g[c].values, "\n")
+            print("*"*len(n), "\n")
 
     else : 
         for c in metadata:
             d = neighbours_metadata[[c]].dropna()
-            print(d.explode(c).value_counts(), "\n")
+            print(d.explode(c).explode(c).drop_duplicates([c, 'neighbours'])[c].value_counts(), "\n")
     
     # Find neighbouring glycans for which we have protein binding data
     glycans_binding = list(set(neighbours_metadata['neighbours'].drop_duplicates()).intersection(set(df_proteins_binding.columns)))
