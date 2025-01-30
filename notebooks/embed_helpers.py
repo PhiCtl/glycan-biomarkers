@@ -153,7 +153,7 @@ def glycan_information(glycan, neighbours, df_metadata, metadata, df_proteins_bi
 
     else : 
         for c in metadata:
-            d = neighbours_metadata[[c]].dropna()
+            d = neighbours_metadata[[c, 'neighbours']].dropna()
             print(d.explode(c).explode(c).drop_duplicates([c, 'neighbours'])[c].value_counts(), "\n")
     
     # Find neighbouring glycans for which we have protein binding data
