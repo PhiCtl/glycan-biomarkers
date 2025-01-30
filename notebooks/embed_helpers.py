@@ -44,16 +44,16 @@ def plot_neighbours_distance(df_neighbours, glycans_list,\
         glyc_vec = np.expand_dims(df_neighbours[glycan].to_numpy(), axis=1)
         dist = cdist(glyc_vec.T, vecs.T, metric=metric).flatten()
         sorted_idx = np.argsort(dist)
-        sorted_dist = np.sort(dist)[:max_dist]
+        sorted_dist = np.sort(dist)
 
         # Compute potential inflection points
-        smoothed_dist = gaussian_filter1d(sorted_dist, sigma=smoothing_sigma)
+        smoothed_dist = gaussian_filter1d(sorted_dist[:max_dist], sigma=smoothing_sigma)
         dy = np.gradient(smoothed_dist)
         d2y = np.gradient(dy)
         inflection_pts = np.where(np.diff(np.sign(d2y)))[0]
 
         # Plot
-        axs[i].plot(sorted_dist)
+        axs[i].plot(sorted_dist[:max_dist])
         axs[i].scatter(inflection_pts, [sorted_dist[i] for i in inflection_pts])
         # axs[i].set(xlim=(1,max_dist))
         axs[i].set_title(glycan[:15] + '...')
