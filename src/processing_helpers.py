@@ -131,11 +131,11 @@ def split_train_test(data, test_size=0.2, random_state=42, verbose: bool = False
     y = data['class'].apply(lambda x : classes.index(x)).to_numpy()
     classes = { i : c for i, c in enumerate(classes)}
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state, stratify=y)
 
     if verbose:
         print("Successfully splitted train / test set.")
 
-    return  X_train, X_test, y_train, y_test, classes
+    return  X_train, X_test, y_train, y_test, classes, feat_cols
 
     
