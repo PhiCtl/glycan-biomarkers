@@ -1,15 +1,16 @@
+import random
 import numpy as np
 import pandas as pd
 import shap
 
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, StratifiedKFold
 from sklearn.ensemble import RandomForestClassifier
 
 from matplotlib import pyplot as plt
 
-import random
-
-random.seed(42)
+SEED = 42
+random.seed(SEED)
+np.random.seed(SEED) 
 
 class ModelTrainer:
 
@@ -18,9 +19,12 @@ class ModelTrainer:
         self.param_grid = param_grid
         self.cv = 5
         self.best_model = None
+        self.seed = SEED
 
     def tune_model(self, x, y, score='accuracy'):
-        grid_search = GridSearchCV(estimator=self.model, param_grid=self.param_grid, cv=self.cv, scoring=score)
+        cv = StratifiedKFold(n_splits=self.cv, shuffle=True, random_state=self.seed)
+        grid_search = GridSearchCV(estimator=self.model, param_grid=self.param_grid,\
+                                        cv=cv, scoring=score)
         grid_search.fit(x, y)
         self.best_model = grid_search.best_estimator_
         print(f"Best parameters found: {grid_search.best_params_}")
@@ -66,7 +70,7 @@ def plot_feature_importance(model, features, top_n=10):
 
 
 class ShapWrapper:
-    def __init__(self, model, X_train: pd.DataFrame, explainer_type: str = "auto"):
+    def __init__(self, model, background: pd.DataFrame, classes: dict, explainer_type: str = "auto"):
         """
         Wrapper for computing SHAP values.
 
@@ -76,7 +80,8 @@ class ShapWrapper:
         - explainer_type: Type of SHAP explainer ('tree', 'kernel', or 'auto').
         """
         self.model = model
-        self.X_train = X_train
+        self.background = background
+        self.classes = classes
         self.explainer = self._initialize_explainer(explainer_type)
 
     def _initialize_explainer(self, explainer_type: str):
@@ -84,30 +89,34 @@ class ShapWrapper:
         if explainer_type == "tree":
             return shap.TreeExplainer(self.model)
         elif explainer_type == "kernel":
-            return shap.KernelExplainer(self.model.predict, self.X_train.sample(100))  # Subsampling for efficiency
+            return shap.KernelExplainer(self.model.predict, self.background.sample(frac=.7))  # Subsampling for efficiency
         else:  # Auto-detect
             try:
-                return shap.Explainer(self.model, self.X_train)
+                return shap.Explainer(self.model, self.background.sample(frac=.7))
             except:
-                return shap.KernelExplainer(self.model.predict, self.X_train.sample(100))
+                return shap.KernelExplainer(self.model.predict, self.background.sample(frac=.7))
 
     def compute_shap_values(self, X_test: pd.DataFrame):
         """Computes SHAP values for the given dataset."""
-        return self.explainer.shap_values(X_test)
+        return self.explainer(X_test)
 
-    def plot_summary(self, X_test: pd.DataFrame):
+    def plot_summary(self, X_test: pd.DataFrame, cl: str, plot_type: str = "beeswarm", sample_ind: int = None):
         """Plots a SHAP summary plot to show feature importance."""
-        shap_values = self.compute_shap_values(X_test)
-        plt.figure(figsize=(10, 6))
-        shap.summary_plot(shap_values, X_test)
+        assert(cl in self.classes.keys())
+        assert(plot_type in ["beeswarm", "force", "bar", "waterfall"])
+        if plot_type == "waterfall":
+            assert(sample_ind is not None)
 
-    def plot_force(self, X_test: pd.DataFrame, instance_idx: int = 0):
-        """Plots a SHAP force plot for a single instance."""
-        shap_values = self.compute_shap_values(X_test)
-        shap.initjs()
-        return shap.force_plot(
-            self.explainer.expected_value, 
-            shap_values[instance_idx], 
-            X_test.iloc[instance_idx]
-        )
+        shap_values = self.compute_shap_values(X_test)[:,:,self.classes[cl]]    
+
+        plt.figure(figsize=(10, 6))
+        if plot_type == "beeswarm":
+            shap.plots.beeswarm(shap_values)
+        elif plot_type == "bar":
+            shap.plots.bar(shap_values)
+        elif plot_type == "waterfall":
+            shap.plots.waterfall(shap_values[sample_ind])
+        elif plot_type == "force":
+            shap.plots.force(shap_values)
+        plt.show(block=False)
 

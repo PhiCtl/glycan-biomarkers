@@ -25,11 +25,11 @@ The project directory is structured as follows:
 
 ### EDA
 
-<img src="outputs/features_mz_rt.png" width="500" align="center" alt="Feature distribution across mass charge ratio and retention time.">
+<img src="../outputs/features_mz_rt.png" width="500" align="center" alt="Feature distribution across mass charge ratio and retention time.">
 
 * The dataset contains 124 samples with 256 extracted features. The features considered are the chromatographic peaks detected for a given retention time range at a given mass / charge ratio range.  A feature value is the peak intensity integrated over the considered time range. Features intensity ranges on 5 order of magnitude, with 90% of features having a median intensity between 100 and 10'000. To improve comparability, we will further consider intensities on the log-scale.
 
-<img src="outputs/detected_compounds.png" width="500" align="center" alt="Detected compounds clustering.">
+<img src="../outputs/detected_compounds.png" width="500" align="center" alt="Detected compounds clustering.">
 
 * Blank samples batch analysis strongly suggests there is no contamination and a study on system suitability samples validates standard samples detection in the experiment.
 
@@ -113,13 +113,13 @@ The state of the art embedding for glycans from different species is already com
 
 ### 1.1 - Learning embedding using Sweetnet architecture trained on species classification task
 
-<img src="outputs/glycans_embeddings_clusters.jpg" width="500" align="center">
+<img src="../outputs/glycans_embeddings_clusters.jpg" width="500" align="center">
 
 We can see from the cluster plot that N-linked glycans seem to cluster on the top right part of the graph, mostly on human glycan clusters. Our unknown glycans seem to belong to human glycans clusters, as expected from their tissue sample origin. Two of the unknown glycans with very similar sequence cluster very closely.
 
 ### 1.2 Learning embedding using Sweetnet architecture trained on glycan type classification task
 
-<img src="outputs/glycans_embeddings_clusters_glycan_type.jpg" width="500" align="center">
+<img src="../outputs/glycans_embeddings_clusters_glycan_type.jpg" width="500" align="center">
 
 Embeddings of the same glycan type cluster tightly on t-SNE plot. Our glycans of interest seem to belong to the N-glycan cluster.
 
@@ -135,7 +135,7 @@ Several approaches can be considered:
 
 I carefully chose the cosine distance or the Manhattan distance metrics as Euclidean distance metrics is not suited for high dimensions, and will focus on the neighbours definition rather than the cluster approach.
 
-<img src="outputs/finding_neighbours.png" width="500" align="center">
+<img src="../outputs/finding_neighbours.png" width="500" align="center">
 
 We will define as neighbours all the points which are closer than the second inflection point to the glycan of interest. See figure above where only first neighbours are taken into account and where inflection points are scattered on the curve. We will compare metadata gathered by embedding similarities between glycan type and species classification.
 

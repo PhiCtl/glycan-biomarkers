@@ -1,7 +1,7 @@
 &nbsp; 
 &nbsp; 
 &nbsp; 
-[<img src="public/221006-logo-isospec-color.jpg" width="250" align="right">]()
+[<img src="../public/221006-logo-isospec-color.jpg" width="250" align="right">]()
 &nbsp;  
 &nbsp; 
 &nbsp; 
@@ -46,7 +46,7 @@ Put simply:
 #### LC-MS Experiments
 LC-MS experiments follow a strict framework to reduce the **variability of the analytical platform** in the data. This framework is composed of different blocks reproduced identically through multiple batches. A schematic description of a batch is shown below:
 
-![Sample List Organization](public/sample-list.png)
+![Sample List Organization](../public/sample-list.png)
 
 *Figure 1: Schematic representation of a typical batch showing the order and organization of different sample types. Blanks and System Suitability samples are run first, followed by alternating patterns of disease samples, controls, and quality checks.*
 

@@ -6,6 +6,14 @@ from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from functools import reduce
+import numpy as np
+
+import random
+
+SEED = 42
+random.seed(SEED)
+np.random.seed(SEED)    
+
 
 
 def load_data(paths: List[str], merge_on='sample', verbose=False):
@@ -123,7 +131,7 @@ def filter_outliers(data, feat_cols, threshold=3):
     # TODO: Implement outlier detection
     pass
 
-def split_train_test(data, test_size=0.2, random_state=42, verbose: bool = False):
+def split_train_test(data, test_size=0.2, verbose: bool = False):
 
     feat_cols = [c for c in data.columns if c.startswith('FT')]
     classes = data['class'].unique().tolist()
@@ -131,7 +139,8 @@ def split_train_test(data, test_size=0.2, random_state=42, verbose: bool = False
     y = data['class'].apply(lambda x : classes.index(x)).to_numpy()
     classes = { i : c for i, c in enumerate(classes)}
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state, stratify=y)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=SEED,
+                                                         stratify=y)
 
     if verbose:
         print("Successfully splitted train / test set.")
