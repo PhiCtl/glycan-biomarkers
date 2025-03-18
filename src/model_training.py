@@ -8,21 +8,17 @@ from sklearn.ensemble import RandomForestClassifier
 
 from matplotlib import pyplot as plt
 
-SEED = 42
-random.seed(SEED)
-np.random.seed(SEED) 
-
 class ModelTrainer:
 
-    def __init__(self, model, param_grid):
+    def __init__(self, model, param_grid, rng):
         self.model = model
         self.param_grid = param_grid
         self.cv = 5
         self.best_model = None
-        self.seed = SEED
+        self.rng = rng
 
     def tune_model(self, x, y, score='accuracy'):
-        cv = StratifiedKFold(n_splits=self.cv, shuffle=True, random_state=self.seed)
+        cv = StratifiedKFold(n_splits=self.cv, shuffle=True, random_state=self.rng)
         grid_search = GridSearchCV(estimator=self.model, param_grid=self.param_grid,\
                                         cv=cv, scoring=score)
         grid_search.fit(x, y)

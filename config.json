@@ -1,0 +1,62 @@
+{
+  "data": {
+    "data_dir_1": "data/input",
+    "data_dir_2": "data/glycan_embedding"
+  },
+
+
+  "results": {
+    "models_dir": "/models/",
+    "results_dir": "outputs/"
+  },
+
+
+  "plotting": {
+    "seaborn_style": "darkgrid",
+    "context": "notebook",
+    "palette": "colorblind",
+    "figsize": [10, 6],
+    "font_scale": 1.5
+  },
+
+
+  "seed": 42,
+
+
+  "models": {
+
+    "roberta": {
+      "tokenizer": {
+        "path": "models/tokenizer_bpe/tokenizer",
+        "files": "models/tokenizer_bpe/files"
+      },
+      "training": {
+        "output_dir": "models/RoBERTa/",
+        "num_train_epochs": 50,
+        "learning_rate": 1e-6,
+        "tokenizer_file": "models/tokenizer_gpt2/tokenizer.json",
+        "weight_decay": 0.01,
+        "adam_epsilon": 1e-8,
+        "save_steps": 25,
+        "logging_dir": "models/RoBERTa/logs/",
+        "mlm_probability": 0.15
+      },
+      "model": {
+        "max_position_embeddings": 512,
+        "num_attention_heads": 4,
+        "num_hidden_layers": 2,
+        "type_vocab_size": 1,
+        "is_decoder": false
+      }
+    },
+
+  "random_forest": {
+    "cv": {
+      "n_estimators": [5, 10,  15, 20, 25, 30],
+      "max_depth" : [3, 5, 7, 9, 11, 13, 15],
+      "max_features" : ["sqrt", "log2"],
+      "bootstrap": [true] 
+    }
+  }
+}
+}

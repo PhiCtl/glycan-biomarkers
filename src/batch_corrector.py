@@ -113,10 +113,10 @@ class BatchCorrector(PipelineStep):
 
         return data.loc[~data['sample'].isin(invalid_samples)]
     
-    def correct_intrabatch_effects(self, data, feat_cols, verbose=False):
+    def correct_intrabatch_effects(self, data, feat_cols):
 
         # TODO implement per batch and parallelize and determine optimal fraction of samples to use
-
+        data = data.sort_values(by='order')
         correction_mask = data['class'].isin(self.qc_classes)
         to_correct_mask = data['class'].isin(self.sample_classes + self.qc_classes)
         x_train = data.loc[correction_mask, 'order'].values
@@ -126,7 +126,8 @@ class BatchCorrector(PipelineStep):
         corrector = _LoessCorrector(frac=self.frac_loess)
 
         for f in feat_cols:
-            # mean feature value
+
+            # median feature value
             mean_f = data.loc[data['class'].isin(self.qc_classes), f].median()
             
             y_train = data.loc[correction_mask, f].values
@@ -151,7 +152,7 @@ class BatchCorrector(PipelineStep):
             print(f"Running {self.name}")
 
         feat_cols = [c for c in data.columns if c.startswith('FT')]
-        data, feat_cols = self.remove_invalid_features(data, feat_cols, verbose)
+        #data, feat_cols = self.remove_invalid_features(data, feat_cols, verbose)
         data = self.remove_invalid_samples(data, verbose)
         data = self.correct_intrabatch_effects(data, feat_cols)
         return data
