@@ -19,7 +19,7 @@ def set_seed(config):
     else:
         torch.manual_seed(seed)
 
-def load_config(config_path='../config.json'):
+def load_config(config_path='config.json'):
     """
     Loads a configuration file in json format.
     Args:

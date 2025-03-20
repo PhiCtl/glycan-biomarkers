@@ -23,12 +23,14 @@
   "seed": 42,
 
 
-  "models": {
+  "models": 
+  {
 
     "roberta": {
       "tokenizer": {
         "path": "models/tokenizer_bpe/tokenizer",
-        "files": "models/tokenizer_bpe/files"
+        "files": "models/tokenizer_bpe/files",
+        "max_length": 512
       },
       "training": {
         "output_dir": "models/RoBERTa/",
@@ -39,7 +41,8 @@
         "adam_epsilon": 1e-8,
         "save_steps": 25,
         "logging_dir": "models/RoBERTa/logs/",
-        "mlm_probability": 0.15
+        "mlm_probability": 0.15,
+        "test_size": 0.2
       },
       "model": {
         "max_position_embeddings": 512,
@@ -56,6 +59,23 @@
       "max_depth" : [3, 5, 7, 9, 11, 13, 15],
       "max_features" : ["sqrt", "log2"],
       "bootstrap": [true] 
+    }
+  },
+
+  "sweetnet" : {
+    "model":
+    {
+      "hidden_dim":128
+    },
+
+    "training":
+    {
+      "learning_rate":5E-4,
+      "weight_decay":1E-3,
+      "num_train_epochs": 100,
+      "patience": 50,
+      "T_max_scheduler": 50,
+      "save_dir": "models/sweetnet"
     }
   }
 }
