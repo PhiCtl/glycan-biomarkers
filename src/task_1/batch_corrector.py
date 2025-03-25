@@ -72,7 +72,7 @@ class BatchCorrector(PipelineStep):
 
         for _, df in data.groupby('batch'):
             qc_mask = df['class'].isin(['QC'])
-            sample_mask = df['class'].isin(['Dunn', 'French', 'LMU'])
+            sample_mask = df['class'].isin(['Healthy control', 'Cancer', 'Benign disease'])
             sample_order_min = df.loc[sample_mask, 'order'].min()
             sample_order_max = df.loc[sample_mask, 'order'].max()
 

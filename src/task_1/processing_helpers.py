@@ -24,6 +24,8 @@ def load_data(paths, **kwargs):
         df = pd.read_csv(path)
         if merge_on is not None and merge_on not in df.columns:
             raise ValueError(f"Merge column {merge_on} not found in {path}")
+        if 'class' in df.columns:
+            df['class'] = df['class'].map({'French': 'Cancer', 'LMU' : 'Benign disease', 'Dunn': 'Healthy control', 'B': 'B', 'dQC': 'dQC', 'QC':'QC', 'SS': 'SS'})
         dfs.append(df)
 
     if verbose:
