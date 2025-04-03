@@ -12,3 +12,6 @@ __pycache__/
 *.pyd
 *.ipynb_checkpoints
 outputs/*
+models/tokenizer_bpe/files/*
+models/embeddings/*
+wandb/
