@@ -88,14 +88,14 @@ if __name__ == "__main__":
     print("Load data")
     data = load_file(args.file_path)['glycan'].values
     paths = get_training_corpus(data, config['files'], chunk_size=1)
-    lib = get_lib(data)
+    #lib = get_lib(data)
 
     print("Train tokenizer")
     # Initialize wrapper
     tokenizer_wrapper = HuggingFaceTokenizerWrapper(tokenizer_type="bpe")
     
     # Train the tokenizer
-    tokenizer_wrapper.train(files=paths, vocab_size=len(lib))
+    tokenizer_wrapper.train(files=paths, vocab_size=config['vocab_size'])
     
     # Save the tokenizer
     tokenizer_wrapper.save(config['path'])
