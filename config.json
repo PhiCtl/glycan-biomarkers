@@ -30,20 +30,20 @@
       "tokenizer": {
         "path": "models/tokenizer_bpe/tokenizer",
         "files": "models/tokenizer_bpe/files",
-        "max_length": 512
+        "max_length": 512,
+        "vocab_size": 1028
       },
       "training": {
         "output_dir": "models/RoBERTa/",
         "num_train_epochs": 100,
-        "learning_rate": 1e-6,
+        "learning_rate": 1e-4,
         "tokenizer_file": "models/tokenizer_gpt2/tokenizer.json",
-        "weight_decay": 0.01,
-        "adam_epsilon": 1e-8,
+        "weight_decay": 1e-3,
         "save_steps": 25,
         "logging_dir": "models/RoBERTa/logs/",
         "mlm_probability": 0.15,
         "test_size": 0.2,
-        "batch_size": 100
+        "batch_size": 512
       },
       "model": {
         "max_position_embeddings": 512,
@@ -76,7 +76,7 @@
       "num_train_epochs": 100,
       "patience": 50,
       "T_max_scheduler": 50,
-      "save_dir": "models/sweetnet"
+      "save_dir": "models/sweetnet/"
     }
   }
 }

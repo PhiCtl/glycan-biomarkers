@@ -128,7 +128,7 @@ def load_training_args(config):
     num_train_epochs=config['training']['num_train_epochs'],
     learning_rate=config['training']['learning_rate'],
     weight_decay=config['training']['weight_decay'],
-    adam_epsilon=config['training']['adam_epsilon'],
+    #adam_epsilon=config['training']['adam_epsilon'],
     save_steps=config['training']['save_steps'],
 
     overwrite_output_dir=True,
@@ -171,8 +171,16 @@ def load_model_config(config, tokenizer):
     return model_config
 
 
-#def load_model(config, pretrained : bool = True):
+def load_model(config):
 
+    model_config = RobertaConfig.from_pretrained(config['training']['output_dir'])
+    model_config.output_hidden_states = True
+    model_config.vocab_size = config['tokenizer']['vocab_size']
+    model_config.max_position_embeddings = config['model']['max_position_embeddings']
+    model = RobertaForMaskedLM.from_pretrained(config['training']['output_dir'], config=model_config)
+    model.eval()
+
+    return model
 
 
 
