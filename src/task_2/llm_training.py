@@ -143,7 +143,7 @@ def load_training_args(config):
 
     return training_args
 
-def load_model_config(config, tokenizer):
+def load_model_config(config):
     """
     Loads and initializes a RobertaConfig object using the provided configuration and tokenizer.
     Args:
@@ -161,7 +161,7 @@ def load_model_config(config, tokenizer):
 
 
     model_config = RobertaConfig(
-        vocab_size=tokenizer.vocab_size,
+        vocab_size=config['tokenizer']['vocab_size'],
         max_position_embeddings=config['model']['max_position_embeddings'],
         num_attention_heads=config['model']['num_attention_heads'],
         num_hidden_layers=config['model']['num_hidden_layers'],
@@ -170,17 +170,6 @@ def load_model_config(config, tokenizer):
     )
     return model_config
 
-
-def load_model(config):
-
-    model_config = RobertaConfig.from_pretrained(config['training']['output_dir'])
-    model_config.output_hidden_states = True
-    model_config.vocab_size = config['tokenizer']['vocab_size']
-    model_config.max_position_embeddings = config['model']['max_position_embeddings']
-    model = RobertaForMaskedLM.from_pretrained(config['training']['output_dir'], config=model_config)
-    model.eval()
-
-    return model
 
 
 
@@ -221,7 +210,7 @@ def main():
     # Prepare training
     print("Prepare training")
     training_args = load_training_args(config)
-    model_config = load_model_config(config, tokenizer)
+    model_config = load_model_config(config)
     model = RobertaForMaskedLM(model_config)
     print(f"{model.num_parameters()} model parameters.")
     trainer = Trainer(
