@@ -8,7 +8,6 @@ from tokenizers import Tokenizer, models, trainers, pre_tokenizers
 from tokenizers.implementations import ByteLevelBPETokenizer
 from transformers import RobertaTokenizerFast, AutoTokenizer
 from pathlib import Path
-from glycowork.motif.processing import get_lib
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 
@@ -88,7 +87,6 @@ if __name__ == "__main__":
     print("Load data")
     data = load_file(args.file_path)['glycan'].values
     paths = get_training_corpus(data, config['files'], chunk_size=1)
-    #lib = get_lib(data)
 
     print("Train tokenizer")
     # Initialize wrapper

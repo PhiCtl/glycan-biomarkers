@@ -2,15 +2,20 @@ from datetime import datetime
 import os
 import pickle
 import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 import torch
-from tqdm import tqdm
-from transformers import pipeline, RobertaForMaskedLM, RobertaConfig
-from glycowork.ml.models import SweetNet
-from glycowork.ml.inference import glycans_to_emb
+#from tqdm import tqdm
+#from transformers import pipeline, RobertaForMaskedLM, RobertaConfig
+#from glycowork.ml.models import SweetNet
+#from glycowork.ml.inference import glycans_to_emb
 
 import torch
 import numpy as np
+
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class EarlyStopping:
     """
@@ -74,17 +79,19 @@ def load_file(path, class_=None):
     else:
         raise ValueError(f"Unsupported file type: {ext}")
 
-def load_model(path, model_type: str):
+def load_model(path, model_type: str, config: dict):
         
     if model_type == 'SweetNet':
-
-        model_ft = torch.load(path)
+        import torch
+        model_ft = torch.load(path, map_location=DEVICE, weights_only=False)
         
     elif model_type == 'RoBERTa':
-
-        config = RobertaConfig.from_pretrained(path)
-        config.output_hidden_states = True
-        model_ft = RobertaForMaskedLM.from_pretrained(path, config=config)
+        from transformers import RobertaForMaskedLM, RobertaConfig
+        model_config = RobertaConfig.from_pretrained(config['training']['output_dir'])
+        model_config.output_hidden_states = True
+        model_config.vocab_size = config['tokenizer']['vocab_size']
+        model_config.max_position_embeddings = config['model']['max_position_embeddings']
+        model_ft = RobertaForMaskedLM.from_pretrained(config['training']['output_dir'], config=model_config)
     
     else:
         raise NotImplementedError()
@@ -93,44 +100,32 @@ def load_model(path, model_type: str):
     return model_ft
 
 
-def get_embeddings(data: pd.DataFrame, model, tokenizer=None, save_path=None):
+def plot_embeddings(embed:np.ndarray, data:pd.DataFrame, hue:str, limit:int = 5, errors=None, seed=42):
 
-    assert('glycan' in data.columns)
+    from sklearn.manifold import TSNE
 
-    if isinstance(model, SweetNet):
-        embeddings = glycans_to_emb(data['glycan'].values, model)
-        if save_path:
-            dt = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-            with open(os.path.join(save_path, f'embeddings_{dt}.pkl'), 'wb') as f:
-                pickle.dump(embeddings, f)
-        return embeddings
+    assert(hue in data.columns)
+    assert(embed.shape[0] == data.shape[0])
+    if errors:
+        data = data[~data['glycan'].isin(errors)].reset_index(drop=True)
     
-    elif isinstance(model, RobertaForMaskedLM):
+    tsne_embeds = TSNE(n_components=2, random_state=seed).fit_transform(embed)
+    df_tsne = pd.DataFrame(tsne_embeds, columns=['x', 'y'])  
+    df_tsne['glycan'] = data['glycan'].tolist()
 
-        assert(tokenizer is not None)
+    # Select the most relevant categories to see the clusters
+    df_tsne['hue'] = data[hue].tolist()
+    df_tsne = df_tsne.explode('hue').drop_duplicates(subset=['glycan', 'hue']).reset_index(drop=True)
+    top_hues = df_tsne['hue'].value_counts().nlargest(limit).index.tolist()
+    df_tsne = df_tsne[df_tsne['hue'].isin(top_hues)].reset_index(drop=True)
 
-        errors_g, embeddings = [], []
-        for g in tqdm(data['glycan'].values):
-            encoded_glycan = tokenizer(g, return_tensors='pt', padding=True, truncation=True)
-            try : 
-                with torch.no_grad():
-                    embed = model(**encoded_glycan)
-                last_hidden_state = embed[-1][-1]
-                # Average token embedding to build sequence embedding
-                glycan_embed = last_hidden_state.squeeze(0).mean(dim=0).numpy()
-                embeddings.append(glycan_embed)
-            except Exception as e:
-                print(f"Error with {g} : {e}")
-                errors_g.append(g)
-        
-        if save_path:
-            dt = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-            with open(os.path.join(save_path, f'embeddings_{dt}.pkl'), 'wb') as f:
-                pickle.dump(embeddings, f)
-        
-        return embeddings, errors_g
-    else:
-        raise NotImplementedError()
-    
+    sns.set_theme(rc = {'figure.figsize':(10, 10)}, font_scale=2)
+    fig = sns.scatterplot(data=df_tsne, x='x', y='y', hue=hue, palette='colorblind', s=40, rasterized=True)
+    fig.set_title('TSNE of Glycan Embeddings')
+
+    return tsne_embeds
+
+
+
     
     
