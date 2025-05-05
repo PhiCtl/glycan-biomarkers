@@ -35,10 +35,10 @@
       },
       "training": {
         "output_dir": "models/RoBERTa/",
-        "num_train_epochs": 100,
-        "learning_rate": 1e-3,
+        "num_train_epochs": 110,
+        "learning_rate": 3e-4,
         "tokenizer_file": "models/tokenizer_gpt2/tokenizer.json",
-        "weight_decay": 1e-4,
+        "weight_decay": 1e-3,
         "save_steps": 25,
         "logging_dir": "models/RoBERTa/logs/",
         "mlm_probability": 0.15,
