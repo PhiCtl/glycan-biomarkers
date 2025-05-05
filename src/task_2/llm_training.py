@@ -4,7 +4,7 @@ from sklearn.model_selection import train_test_split
 import wandb
 import os, sys
 import torch
-
+import logging 
 import pandas as pd
 
 from torch.utils.data import Dataset
@@ -19,6 +19,7 @@ from src.task_2.tokenizer import HuggingFaceTokenizerWrapper
 from utils.config import load_config
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+logger = logging.getLogger(__name__)
 
 class GlycanDataset(Dataset):
     """
@@ -132,7 +133,7 @@ def load_training_args(config):
     save_steps=config['training']['save_steps'],
 
     overwrite_output_dir=True,
-    evaluation_strategy='epoch',
+    eval_strategy='epoch',
     do_train=True,
     do_eval=True,
 
@@ -166,7 +167,11 @@ def load_model_config(config):
         num_attention_heads=config['model']['num_attention_heads'],
         num_hidden_layers=config['model']['num_hidden_layers'],
         type_vocab_size=config['model']['type_vocab_size'],
+        hidden_size=config['model']['hidden_size'],
+        intermediate_size=config['model']['intermediate_size'],
         is_decoder=config['model']['is_decoder'],
+        hidden_dropout_prob=config['model']['hidden_dropout_prob'],
+        attention_probs_dropout_prob=config['model']['attention_probs_dropout_prob'],
     )
     return model_config
 
@@ -188,31 +193,32 @@ def main():
     run = wandb.init( project = "glycan-embedding" )
 
     # Load config and data
-    print("Load config")
+    logger.info("Load config")
     config = load_config()
     seed = config['seed']
     set_seed(seed)
-    print("Load data")
+    logger.info("Load data")
     data = load_file(args.file_path)
     config = config['models']['roberta']
 
     # Load tokenizer
-    print("Load tokenizer")
+    logger.info("Load tokenizer")
     wrapper = HuggingFaceTokenizerWrapper()
     wrapper.load(config['tokenizer']['path'])
     tokenizer = wrapper.get_tokenizer()
 
 
     # Prepare dataset
-    print("Prepare datasets")
+    logger.info("Prepare datasets")
     x_tr, x_val, data_collator = prepare_datasets(data, tokenizer, config, seed)
+    logger.info(f"Training size: {len(x_tr)}, validation size: {len(x_val)}")
 
     # Prepare training
-    print("Prepare training")
+    logger.info("Prepare training")
     training_args = load_training_args(config)
     model_config = load_model_config(config)
     model = RobertaForMaskedLM(model_config)
-    print(f"{model.num_parameters()} model parameters.")
+    logger.info(f"{model.num_parameters()} model parameters.")
     trainer = Trainer(
     model=model,
     args=training_args,
@@ -220,16 +226,14 @@ def main():
     train_dataset=x_tr,
     eval_dataset=x_val,
     )
-
-    print(model.config.vocab_size, tokenizer.vocab_size)
     
 
     # Train
-    print("Train model")
+    logger.info("Train model")
     trainer.train()
 
     # Save model
-    print("Save model")
+    logger.info("Save model")
     os.makedirs(config['training']['output_dir'], exist_ok=True)
     trainer.save_model(config['training']['output_dir'])
     run.finish()
