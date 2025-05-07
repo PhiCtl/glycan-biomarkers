@@ -5,48 +5,57 @@ import os
 import sys
 import numpy as np
 from sklearn.metrics import accuracy_score, matthews_corrcoef
-import matplotlib.pyplot as plt
-
-from glycowork.ml.models import SweetNet, prep_model
-from glycowork.ml.processing import split_data_to_train
-from glycowork.ml.train_test_split import hierarchy_filter
+from glycowork.ml.models import prep_model
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 
 from utils.config import load_config, set_seed
-from src.task_2.helpers import load_file, EarlyStopping
+from src.task_2.plots_helpers import plot_metrics
+from src.task_2.datasets import prepare_datasets
+from utils.logger import get_logger
 
 DEVICE = "cpu"
 if torch.cuda.is_available():
     DEVICE = "cuda:0"
-    
+logger = get_logger(__name__)
 
-def prepare_data(path, class_):
+class EarlyStopping:
     """
-    Prepares data for training and validation by loading, filtering, and splitting it into dataloaders.
-    Args:
-        path (str): The file path to the pickled DataFrame containing the data.
-        class_ (str): The column name in the DataFrame representing the class hierarchy to be used.
-    Returns:
-        tuple: A tuple containing:
-            - dataloaders (dict): A dictionary containing the training and validation dataloaders.
-            - class_list (list): A list of unique classes in the specified hierarchy.
-            - class_converter (dict): A mapping of class names to their corresponding indices.
-    Raises:
-        AssertionError: If the specified class_ is not a column in the DataFrame.
-    Notes:
-        - The function assumes the DataFrame contains hierarchical class information.
-        - The `hierarchy_filter` function is used to filter the data based on the specified class hierarchy.
-        - The `split_data_to_train` function is used to split the data into training and validation sets.
+    Early stops the training if validation loss doesn't improve after a given patience.
     """
+    def __init__(self, path=None, patience=7, verbose=False):
+        self.patience = patience
+        self.verbose = verbose
+        self.counter = 0
+        self.path = path
+        self.best_score = None
+        self.early_stop = False
+        self.val_loss_min = np.inf
 
+    def __call__(self, val_loss, model):
+        score = -val_loss
 
-    df_data = load_file(path, class_)
-    train_x, val_x, train_y, val_y, id_val, class_list, class_converter = hierarchy_filter(df_data,
-                                                                              rank = class_, min_seq=10)
-    dataloaders = split_data_to_train(train_x, val_x, train_y, val_y)
+        if self.best_score is None:
+            self.best_score = score
+            self.save_checkpoint(val_loss, model)
+        elif score < self.best_score:
+            self.counter += 1
+            if self.verbose:
+                logger.info(f'EarlyStopping counter: {self.counter} out of {self.patience}')
+            if self.counter >= self.patience:
+                self.early_stop = True
+        else:
+            self.best_score = score
+            self.save_checkpoint(val_loss, model)
+            self.counter = 0
 
-    return dataloaders, class_list, class_converter
+    def save_checkpoint(self, val_loss, model):
+        '''Saves model when validation loss decreases.'''
+        if self.verbose:
+            logger.info(f'Validation loss decreased ({self.val_loss_min:.6f} --> {val_loss:.6f}).  Saving model ...')
+        if self.path is not None:
+            torch.save(model.state_dict(), self.path)
+        self.val_loss_min = val_loss
 
 
 def train_graphCNN(dataloaders, class_type, num_classes, config):
@@ -93,25 +102,6 @@ def train_graphCNN(dataloaders, class_type, num_classes, config):
     torch.save(model_ft, save_path + f'/Sweetnet_{class_type}.pt')
     plot_metrics(val_acc, epoch, val_losses, save_path)
 
-def plot_metrics(val_acc, epoch, val_losses, save_path=None):
-
-    ## plot loss & accuracy score over the course of training 
-    fig, ax = plt.subplots(nrows = 2, ncols = 1) 
-    plt.subplot(2, 1, 1)
-    plt.plot(range(epoch+1), val_losses)
-    plt.title('Training of SweetNet')
-    plt.ylabel('Validation Loss')
-    plt.legend(['Validation Loss'],loc = 'best')
-
-    plt.subplot(2, 1, 2)
-    plt.plot(range(epoch+1), val_acc)
-    plt.ylabel('Validation Accuracy')
-    plt.xlabel('Number of Epochs')
-    plt.legend(['Validation Accuracy'], loc = 'best')
-
-    if save_path:
-        os.makedirs(save_path, exist_ok=True)
-        plt.savefig(save_path + "/metrics.png")
 
 
 def _train_model(model, dataloaders, criterion, optimizer, scheduler, early_stopping, num_epochs = 25):
@@ -154,8 +144,8 @@ def _train_model(model, dataloaders, criterion, optimizer, scheduler, early_stop
     val_acc = []
 
     for epoch in range(num_epochs):
-        print('Epoch {}/{}'.format(epoch, num_epochs - 1))
-        print('-'*10)
+        logger.info('Epoch {}/{}'.format(epoch, num_epochs - 1))
+        logger.info('-'*10)
 
         for phase in ['train', 'val']:
             if phase == 'train':
@@ -192,7 +182,7 @@ def _train_model(model, dataloaders, criterion, optimizer, scheduler, early_stop
             epoch_loss = np.mean(running_loss)
             epoch_acc = np.mean(running_acc)
             epoch_mcc = np.mean(running_mcc)
-            print('{} Loss: {:.4f} Accuracy: {:.4f} MCC: {:.4f}'.format(
+            logger.info('{} Loss: {:.4f} Accuracy: {:.4f} MCC: {:.4f}'.format(
                 phase, epoch_loss, epoch_acc, epoch_mcc))
         
             if phase == 'val' and epoch_loss <= best_loss:
@@ -208,14 +198,13 @@ def _train_model(model, dataloaders, criterion, optimizer, scheduler, early_stop
             scheduler.step()
         
         if early_stopping.early_stop:
-            print("Early stopping")
+            logger.info("Early stopping")
             break
-        print()
 
     time_elapsed = time.time() - since
-    print('Training complete in {:.0f}m {:.0f}s'.format(
+    logger.info('Training complete in {:.0f}m {:.0f}s'.format(
         time_elapsed // 60, time_elapsed % 60))
-    print('Best val loss: {:4f}, best Accuracy score: {:.4f}'.format(best_loss, best_acc))
+    logger.info('Best val loss: {:4f}, best Accuracy score: {:.4f}'.format(best_loss, best_acc))
     model.load_state_dict(best_model_wts)
 
     return model, val_acc, val_losses, epoch
@@ -223,15 +212,15 @@ def _train_model(model, dataloaders, criterion, optimizer, scheduler, early_stop
 def main():
 
     #os.chdir('../..')
-    print("Load config..")
+    logger.info("Load config..")
     config = load_config()
     set_seed(config)
     
-    print("Load data...")
+    logger.info("Load data...")
     data_path = os.path.join(config['data']['data_dir_2'], 'df_glycan.pkl')
-    dataloaders, class_list, _ = prepare_data(data_path, class_='Family')
+    dataloaders, class_list, _ = prepare_datasets(data_path, model_type='SweetNet', class_='Family')
 
-    print("Train model")
+    logger.info("Train model")
     train_graphCNN(dataloaders, 'Family', num_classes=len(class_list), config=config['models']['sweetnet'])
 
 if __name__ == '__main__':

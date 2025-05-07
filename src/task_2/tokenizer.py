@@ -3,23 +3,22 @@ import argparse
 import sys
 from tqdm import tqdm
 
-import numpy as np
-from tokenizers import Tokenizer, models, trainers, pre_tokenizers
 from tokenizers.implementations import ByteLevelBPETokenizer
-from transformers import RobertaTokenizerFast, AutoTokenizer
-from pathlib import Path
+from transformers import RobertaTokenizerFast
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 
-
-from src.task_2.helpers import load_file
+from src.task_2.loading_helpers import load_file
 from utils.config import load_config
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 def get_training_corpus(dataset, path, chunk_size=10):
     os.makedirs(path, exist_ok=True)
     
     if len(os.listdir(path)) <= 1:
-        print("Preparing files")
+        logger.info("Preparing files")
         for i in tqdm(range(0, len(dataset), chunk_size)):
 
             samples = dataset[i: i + chunk_size]
@@ -28,7 +27,7 @@ def get_training_corpus(dataset, path, chunk_size=10):
             with open(p, 'w', encoding='utf-8') as f:
                 for sample in samples:
                     f.write(sample + '\n')
-    print("Done !")
+    logger.info("Done !")
     return [os.path.join(path, f) for f in os.listdir(path)]
 
 class HuggingFaceTokenizerWrapper:
@@ -56,13 +55,13 @@ class HuggingFaceTokenizerWrapper:
 
         self.tokenizer.train(files=files, vocab_size=vocab_size, min_frequency=min_frequency, special_tokens=special_tokens)
 
-        print(f"Tokenizer trained with {len(self.tokenizer.get_vocab())} tokens.")
+        logger.info(f"Tokenizer trained with {len(self.tokenizer.get_vocab())} tokens.")
 
     def save(self, path):
         """Save the trained tokenizer to a specified path."""
         os.makedirs(path, exist_ok=True)
         self.tokenizer.save_model(path)
-        print(f"Tokenizer saved to {path}")
+        logger.info(f"Tokenizer saved to {path}")
     
     def load(self, path):
         self.tokenizer = RobertaTokenizerFast.from_pretrained(path, max_len=self.max_length)
@@ -82,13 +81,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Load data
-    print("Load config")
+    logger.info("Load config")
     config = load_config()['models']['roberta']['tokenizer']
-    print("Load data")
+    logger.info("Load data")
     data = load_file(args.file_path)['glycan'].values
     paths = get_training_corpus(data, config['files'], chunk_size=1)
 
-    print("Train tokenizer")
+    logger.info("Train tokenizer")
     # Initialize wrapper
     tokenizer_wrapper = HuggingFaceTokenizerWrapper(tokenizer_type="bpe")
     
@@ -96,4 +95,4 @@ if __name__ == "__main__":
     tokenizer_wrapper.train(files=paths, vocab_size=config['vocab_size'])
     
     # Save the tokenizer
-    tokenizer_wrapper.save(config['path'])
+    #tokenizer_wrapper.save(config['path'])
