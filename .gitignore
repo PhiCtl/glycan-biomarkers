@@ -6,9 +6,12 @@ __pycache__/
 *.pyd
 *.pyw
 *.pyz
-*.py
 *.pyx
 *.pyj
 *.pyb
 *.pyd
-
+*.ipynb_checkpoints
+outputs/*
+models/tokenizer_bpe/files/*
+models/embeddings/*
+wandb/
